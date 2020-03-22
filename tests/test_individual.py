@@ -1,8 +1,9 @@
 import unittest
 import pygame
 import random
-from pandemic.individual import Individual
-from pandemic.engine import Engine
+import time
+from pandemic.individual import Individual, Status
+from pandemic.engine import IEngine, BasicMoveEngine, MoveSickEngine, MoveSickCureEngine, MoveSickDeadEngine
 from pandemic.geometry import Point2D
 
 # Screen dimensions.
@@ -52,12 +53,68 @@ class TestIndividual(unittest.TestCase):
             individual = Individual(randomPosition, speed, angle, radius, self._randomColor())
             population.add(individual)
 
-        engine = Engine(640, 480)
+        engine = BasicMoveEngine(population, 640, 480)
 
-        self._eventLoop(population, engine, 30000)
+        self._eventLoop(population, engine, 10000)
 
     # -------------------
-    def _eventLoop(self, population: pygame.sprite.Group, engine: Engine, timeInMillis: int):
+    def test_sick(self):
+
+        population = pygame.sprite.Group()
+        for i in range(0, 50):            
+            speed = random.randrange(10)
+            angle = random.randrange(360)
+            radius = random.randrange(30)
+            randomPosition = Point2D(random.randrange(radius, SCREEN_WIDTH-radius), random.randrange(radius, SCREEN_HEIGHT-radius))
+            individual = Individual.create(randomPosition, speed, angle, radius, Status.HEALTHY)
+            population.add(individual)
+
+        engine = MoveSickEngine(population, 640, 480)
+
+        self._eventLoop(population, engine, 10000)        
+
+    # -------------------
+    def test_cure(self):
+
+        population = pygame.sprite.Group()
+        for i in range(0, 50):            
+            speed = random.randrange(10)
+            angle = random.randrange(360)
+            radius = random.randrange(30)
+            randomPosition = Point2D(random.randrange(radius, SCREEN_WIDTH-radius), random.randrange(radius, SCREEN_HEIGHT-radius))
+            individual = Individual.create(randomPosition, speed, angle, radius, Status.HEALTHY)
+            population.add(individual)
+
+        # First individual is sick.
+        population.sprites()[0].status = Status.SICK
+        population.sprites()[0].sickTime = time.time()
+
+        engine = MoveSickCureEngine(population, 10, 640, 480)
+
+        self._eventLoop(population, engine, 30000)             
+
+    # -------------------
+    def test_dead(self):
+
+        population = pygame.sprite.Group()
+        for i in range(0, 50):            
+            speed = random.randrange(10)
+            angle = random.randrange(360)
+            radius = random.randrange(30)
+            randomPosition = Point2D(random.randrange(radius, SCREEN_WIDTH-radius), random.randrange(radius, SCREEN_HEIGHT-radius))
+            individual = Individual.create(randomPosition, speed, angle, radius, Status.HEALTHY)
+            population.add(individual)
+
+        # First individual is sick.
+        population.sprites()[0].status = Status.SICK
+        population.sprites()[0].sickTime = time.time()
+
+        engine = MoveSickDeadEngine(population, 10, 640, 480)
+
+        self._eventLoop(population, engine, 30000)     
+
+    # -------------------
+    def _eventLoop(self, population: pygame.sprite.Group, engine: IEngine, timeInMillis: int):
         pygame.time.set_timer(pygame.USEREVENT, timeInMillis)
 
         # Loop until the user clicks the close button.
