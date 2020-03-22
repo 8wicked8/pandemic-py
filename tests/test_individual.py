@@ -5,15 +5,11 @@ import time
 from pandemic.individual import Individual, Status
 from pandemic.engine import IEngine, BasicMoveEngine, MoveSickEngine, MoveSickCureEngine, MoveSickDeadEngine
 from pandemic.geometry import Point2D
+from pandemic.color import *
 
 # Screen dimensions.
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
-
-# Define some colors
-BLACK = (  0,   0,   0)
-WHITE = (255, 255, 255)
-RED   = (255,   0,   0)
 
 # --------------------------------------------------------------
 class TestIndividual(unittest.TestCase):

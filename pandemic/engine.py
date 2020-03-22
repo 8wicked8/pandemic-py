@@ -3,7 +3,7 @@ import math
 import pygame
 import time
 from abc import ABC, abstractmethod
-from pandemic.individual import Status, Individual, GREEN, RED, BLUE, BLACK, WHITE
+from pandemic.individual import Status, Individual
 
 # --------------------------------------------------------------
 class IEngine(ABC):
