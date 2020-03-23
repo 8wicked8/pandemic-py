@@ -38,7 +38,8 @@ class HistoryGraph(pygame.sprite.Sprite):
         self.image.fill(BLACK) # Background color.
         self.image.set_colorkey(BLACK) # Transparent color.
 
-        pygame.draw.rect(self.image, color, pygame.Rect(0, 0, width, height), 1)
+        #pygame.draw.rect(self.image, color, pygame.Rect(0, 0, width, height), 1)
+        pygame.draw.line(self.image, color, (0, 0), (width, 0), 2)
 
         # Fetch the rectangle object that has the dimensions of the image
         # image.
@@ -58,7 +59,8 @@ class HistoryGraph(pygame.sprite.Sprite):
         self.rect.y = self.position.y
 
         self.image.fill(BLACK) # Background color.
-        pygame.draw.rect(self.image, self.color, pygame.Rect(0, 0, self.width, self.height), 1)
+        #pygame.draw.rect(self.image, self.color, pygame.Rect(0, 0, self.width, self.height), 1)
+        pygame.draw.line(self.image, self.color, (0, 0), (self.width, 0), 2)
         self.plot(self._healthyRecords, pygame.Color("green"))
         self.plot(self._sickRecords, pygame.Color("red"))
         self.plot(self._curedRecords, pygame.Color("blue"))

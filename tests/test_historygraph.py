@@ -9,6 +9,8 @@ from pandemic.color import *
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 
+HISTORYGRAPH_HEIGHT = 100
+
 # --------------------------------------------------------------
 class TestHistoryGraph(unittest.TestCase):
 
@@ -23,15 +25,15 @@ class TestHistoryGraph(unittest.TestCase):
 
     # -------------------
     def test_displayEmptyHistoryGraph(self):
-        historygraph = HistoryGraph(50, Point2D(0, SCREEN_HEIGHT-100), SCREEN_WIDTH, 100, WHITE)
+        historygraph = HistoryGraph(50, Point2D(0, SCREEN_HEIGHT-HISTORYGRAPH_HEIGHT), SCREEN_WIDTH, HISTORYGRAPH_HEIGHT, WHITE)
 
         self._eventLoop(historygraph, 2000)
 
     # -------------------
     def test_displayHealthyHistoryGraph(self):
-        historygraph = HistoryGraph(20, Point2D(0, SCREEN_HEIGHT-100), SCREEN_WIDTH, 100, WHITE)
+        historygraph = HistoryGraph(20, Point2D(0, SCREEN_HEIGHT-HISTORYGRAPH_HEIGHT), SCREEN_WIDTH, HISTORYGRAPH_HEIGHT, WHITE)
 
-        self._eventLoop(historygraph, 10000)        
+        self._eventLoop(historygraph, 2000)        
 
     # -------------------
     def _eventLoop(self, historygraph: HistoryGraph, timeInMillis: int):
@@ -64,7 +66,7 @@ class TestHistoryGraph(unittest.TestCase):
                 # Calls update() method on every sprite in the list
                 historygraph.update()
 
-                # Draw all the spites
+                # Draw all the sprites
                 historygraph.draw(self._screen)
 
                 # Limit to 20 frames per second
