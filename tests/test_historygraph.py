@@ -31,11 +31,6 @@ class TestHistoryGraph(unittest.TestCase):
     def test_displayHealthyHistoryGraph(self):
         historygraph = HistoryGraph(20, Point2D(0, SCREEN_HEIGHT-100), SCREEN_WIDTH, 100, WHITE)
 
-        for i in range(20):
-            historygraph.decrementHealthy()
-            historygraph.incrementSick()
-            pygame.time.delay(random.randrange(100))
-
         self._eventLoop(historygraph, 10000)        
 
     # -------------------
@@ -59,7 +54,13 @@ class TestHistoryGraph(unittest.TestCase):
                         
                 # Clear the screen
                 self._screen.fill(BLACK)
-                    
+
+                # Change counters on the graph.
+                if (historygraph._healthyCount > 0):
+                    historygraph.decrementHealthy()
+                    historygraph.incrementSick()
+                    pygame.time.delay(random.randrange(100))
+
                 # Calls update() method on every sprite in the list
                 historygraph.update()
 

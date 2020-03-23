@@ -24,6 +24,7 @@ class HistoryGraph(pygame.sprite.Sprite):
         self.position = position
         self.width = width
         self.height = height
+        self.color = color
         self._healthyCount = populationSize
         self._healthyRecords = []
         self._sickCount = 0
@@ -56,6 +57,8 @@ class HistoryGraph(pygame.sprite.Sprite):
         self.rect.x = self.position.x
         self.rect.y = self.position.y
 
+        self.image.fill(BLACK) # Background color.
+        pygame.draw.rect(self.image, self.color, pygame.Rect(0, 0, self.width, self.height), 1)
         self.plot(self._healthyRecords, pygame.Color("green"))
         self.plot(self._sickRecords, pygame.Color("red"))
         self.plot(self._curedRecords, pygame.Color("blue"))
@@ -63,15 +66,16 @@ class HistoryGraph(pygame.sprite.Sprite):
 
     # -------------------
     def plot(self, records: List[Record], color: pygame.Color):
-        if (len(records) > 0):
+        if (len(records) > 1):
             xMin = records[0].timestamp
             xMax = records[len(records)-1].timestamp
-            yMax = self._healthyCount + self._sickCount + self._curedCount + self._deadCount
+            if (xMax > xMin):
+                yMax = self._healthyCount + self._sickCount + self._curedCount + self._deadCount
 
-            points = []
-            for record in records:
-                points.append((self.rescaleX(record.timestamp-xMin, xMax-xMin), self.rescaleY(record.counter, yMax)))
-            pygame.draw.lines(self.image, color, False, points)
+                points = []
+                for record in records:
+                    points.append((self.rescaleX(record.timestamp-xMin, xMax-xMin), self.rescaleY(record.counter, yMax)))
+                pygame.draw.lines(self.image, color, False, points)
 
     # -------------------
     def rescaleX(self, x: float, xMax: float) -> float:

@@ -21,16 +21,25 @@ class BasicMoveEngine(IEngine):
         self._screenHeight = screenHeight
 
     def move(self, individual: Individual):
+
+        # Convert angle from degree to radian.
         angleInRad = individual.angleInDeg * 2 * math.pi / 360
 
+        # Compute the next X position.
         nextPosX = individual.position.x + individual.speed * math.cos(angleInRad)
+
+        # Eventually do a rebounce if individual cross the Window limits.
         if nextPosX < individual.radius or nextPosX > self._screenWidth-individual.radius:
             individual.angleInDeg = 180 - individual.angleInDeg
 
+        # Compute the next Y position.
         nextPosY = individual.position.y + individual.speed * math.sin(angleInRad)
+
+        # Eventually do a rebounce if individual cross the Window limits.
         if nextPosY < individual.radius or nextPosY > self._screenHeight-individual.radius:
             individual.angleInDeg = - individual.angleInDeg
 
+        # Finally update the position X and Y.
         individual.position.x = nextPosX
         individual.position.y = nextPosY
 
@@ -43,14 +52,21 @@ class MoveSickEngine(BasicMoveEngine):
         self._screenHeight = screenHeight
 
     def move(self, individual: Individual):
+        # In this method, we only have to modify the individual input parameter and nothing else.
+        # We must not change the status (or anything else) of other individuals in the population.
 
+        # Move the individual.
         super().move(individual)
 
+        # Collect all the individuals that were hit due to the move (including myself since I am also part of the population).
         hitIndividuals = pygame.sprite.spritecollide(individual, self._population, False, pygame.sprite.collide_circle)
 
+        # Every sick individual I meet, make me sick.
         for hitIndividual in hitIndividuals:
             if (hitIndividual != individual):
+                # I have to exclude myself.                
                 hitIndividual.status = Status.SICK
+                break
 
 # --------------------------------------------------------------
 class MoveSickCureEngine(BasicMoveEngine):
@@ -62,17 +78,25 @@ class MoveSickCureEngine(BasicMoveEngine):
         self._screenHeight = screenHeight
 
     def move(self, individual: Individual):
+        # In this method, we only have to modify the individual input parameter and nothing else.
+        # We must not change the status (or anything else) of other individuals in the population.
 
+        # Move the individual.
         super().move(individual)
 
+        # Only healthy individual may become sick on hit.
         if (individual.status == Status.HEALTHY):
+            # Collect all the individuals that were hit due to the move (including myself since I am also part of the population).
             hitIndividuals = pygame.sprite.spritecollide(individual, self._population, False, pygame.sprite.collide_circle)
-
+            # Every hit with a sick individual I meet, make me sick.
             for hitIndividual in hitIndividuals:
                 if (hitIndividual != individual and hitIndividual.status == Status.SICK):
                     individual.status = Status.SICK
+                    # Initialize the timer that measures time until I am cured.
                     individual.sickTime = time.time()
+                    break
         else:
+            # After healing time elapsed, an individual is cured.
             if time.time() - individual.sickTime > self._healingTimeInSec:
                 individual.status = Status.CURED
 
@@ -86,18 +110,26 @@ class MoveSickDeadEngine(BasicMoveEngine):
         self._screenHeight = screenHeight
 
     def move(self, individual: Individual):
+        # In this method, we only have to modify the individual input parameter and nothing else.
+        # We must not change the status (or anything else) of other individuals in the population.
 
+        # Only alive individual can do something : move...
         if (individual.status != Status.DEAD):
             super().move(individual)
 
+            # Only healthy individual may become sick on hit.
             if (individual.status == Status.HEALTHY):
+                # Collect all the individuals that were hit due to the move (including myself since I am also part of the population).
                 hitIndividuals = pygame.sprite.spritecollide(individual, self._population, False, pygame.sprite.collide_circle)
-
+                # Every hit with a sick individual I meet, make me sick.
                 for hitIndividual in hitIndividuals:
                     if (hitIndividual != individual and hitIndividual.status == Status.SICK):
                         individual.status = Status.SICK
+                        # Initialize the timer that measures time until I am cured.
                         individual.sickTime = time.time()
+                        break
             else:
+                # After dead time elapsed, an individual is dead.
                 if time.time() - individual.sickTime > self._deadTimeInSec:
                     individual.status = Status.DEAD
 
