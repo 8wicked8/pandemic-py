@@ -37,11 +37,12 @@ Vector2D = Point2D
 # --------------------------------------------------------------
 class Ball(pygame.sprite.Sprite):
 
-    def __init__(self, mass: float, balls: pygame.sprite.Group, staticPosition: Point2D):
+    def __init__(self, radius: float, mass: float, color: pygame.Color, balls: pygame.sprite.Group, staticPosition: Point2D):
 
         # Call the parent class (Sprite) constructor
         super().__init__()
 
+        self.radius = radius / SCALE # In meter.
         self.mass = mass
         self.balls = balls
         self.staticPosition = staticPosition
@@ -49,7 +50,6 @@ class Ball(pygame.sprite.Sprite):
         self.timestamp = time.time()
 
         # All the measure below are in meters. We use SCALE factor to convert from pixel to meter.
-        self.radius = RADIUS / SCALE # In meter.
         self.minLimits = Point2D(self.radius + BOXING_LIMIT, self.radius + BOXING_LIMIT) # In meter.
         self.maxLimits = Point2D(SCREEN_WIDTH / SCALE - self.radius - BOXING_LIMIT, SCREEN_HEIGHT / SCALE - self.radius - BOXING_LIMIT) # In meter.
 
@@ -61,11 +61,11 @@ class Ball(pygame.sprite.Sprite):
         self.speed = Vector2D(random.uniform(-10/SCALE, 10/SCALE), random.uniform(-10/SCALE, 10/SCALE)) # In meter/s.
         self.acceleration = Vector2D(0, 0) # In meter/s².
         
-        self.image = pygame.Surface([2*RADIUS, 2*RADIUS])
+        self.image = pygame.Surface([2*radius, 2*radius])
         self.image.fill(pygame.Color("black")) # Background color.
         self.image.set_colorkey(pygame.Color("black")) # Transparent color.
 
-        pygame.draw.circle(self.image, pygame.Color("red"), (RADIUS, RADIUS), RADIUS, 0)
+        pygame.draw.circle(self.image, color, (radius, radius), radius, 0)
 
         # Fetch the rectangle object that has the dimensions of the image
         # image.
@@ -144,10 +144,10 @@ class TestMultipleGravity2D(unittest.TestCase):
 
         # Create all the ball objects.
         balls = pygame.sprite.Group()
-        massiveBall = Ball(1000 * MASS, balls, Point2D(SCREEN_WIDTH / 2 / SCALE, SCREEN_HEIGHT / 2 / SCALE)) # Create at the center a static massive ball.
+        massiveBall = Ball(4 * RADIUS, 1000 * MASS, pygame.Color("yellow"), balls, Point2D(SCREEN_WIDTH / 2 / SCALE, SCREEN_HEIGHT / 2 / SCALE)) # Create at the center a static massive ball.
         balls.add(massiveBall)
         for i in range(0, NB_BALLS-1):           
-            ball = Ball(MASS, balls, None)
+            ball = Ball(RADIUS, MASS, pygame.Color("white"), balls, None)
             balls.add(ball)
 
         # Initialize the timer at 60s that trigger the exit loop.
