@@ -109,6 +109,7 @@ class TestMultipleGravity1D(unittest.TestCase):
 
         # Create the window.
         self._screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+        pygame.display.set_caption(self.__str__())
 
         # Create all the ball objects.
         balls = pygame.sprite.Group()

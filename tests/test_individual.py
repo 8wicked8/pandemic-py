@@ -21,6 +21,7 @@ class TestIndividual(unittest.TestCase):
     def setUp(self):
         pygame.init()
         self._screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+        pygame.display.set_caption(self.__str__())
 
     # -------------------
     def tearDown(self):

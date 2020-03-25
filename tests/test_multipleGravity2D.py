@@ -4,15 +4,25 @@ import random
 import math
 import time
 
-# Screen dimensions.
-SCREEN_WIDTH = 640
-SCREEN_HEIGHT = 480
+# Number of animated balls.
+NB_BALLS = 200
 
-RADIUS = 10
-GRAVITY = 9.81 # m/s²
+# Screen dimensions.
+SCREEN_WIDTH = 1024
+SCREEN_HEIGHT = 768
+
+RADIUS = 3 # pixel
 RESTITUTION_COEFFICIENT = 0.9 # The coefficient of restitution is the ratio of the final to initial relative velocity between two objects after they collide.
 TIME_COEFFICIENT = 1 # = 1 : Normal, > 1 : Faster, < 1 : Slower.
-SCALE = 50 # Number of pixel per meter.
+SCALE = 1 # Number of pixel per meter.
+
+# Earth mass.
+MASS = 1000 # kg
+
+# Gravitational constant.
+G = 1 # m3 kg-1 s-2
+
+BOXING_LIMIT = 200
 
 # --------------------------------------------------------------
 class Point2D:
@@ -27,20 +37,29 @@ Vector2D = Point2D
 # --------------------------------------------------------------
 class Ball(pygame.sprite.Sprite):
 
-    def __init__(self):
+    def __init__(self, mass: float, balls: pygame.sprite.Group, staticPosition: Point2D):
 
         # Call the parent class (Sprite) constructor
         super().__init__()
+
+        self.mass = mass
+        self.balls = balls
+        self.staticPosition = staticPosition
 
         self.timestamp = time.time()
 
         # All the measure below are in meters. We use SCALE factor to convert from pixel to meter.
         self.radius = RADIUS / SCALE # In meter.
-        self.minLimits = Point2D(self.radius, self.radius) # In meter.
-        self.maxLimits = Point2D(SCREEN_WIDTH / SCALE - self.radius, SCREEN_HEIGHT / SCALE - self.radius) # In meter.
-        self.position = Point2D(random.uniform(self.minLimits.x, self.maxLimits.x), 0) # In meter.
-        self.speed = Vector2D(10, 0) # In meter/s.
-        self.acceleration = Vector2D(0, -GRAVITY) # In meter/s².
+        self.minLimits = Point2D(self.radius + BOXING_LIMIT, self.radius + BOXING_LIMIT) # In meter.
+        self.maxLimits = Point2D(SCREEN_WIDTH / SCALE - self.radius - BOXING_LIMIT, SCREEN_HEIGHT / SCALE - self.radius - BOXING_LIMIT) # In meter.
+
+        if (self.staticPosition != None):
+            self.position = staticPosition
+        else:    
+            self.position = Point2D(random.uniform(self.minLimits.x, self.maxLimits.x), random.uniform(self.minLimits.y, self.maxLimits.y)) # In meter.
+
+        self.speed = Vector2D(random.uniform(-10/SCALE, 10/SCALE), random.uniform(-10/SCALE, 10/SCALE)) # In meter/s.
+        self.acceleration = Vector2D(0, 0) # In meter/s².
         
         self.image = pygame.Surface([2*RADIUS, 2*RADIUS])
         self.image.fill(pygame.Color("black")) # Background color.
@@ -64,12 +83,27 @@ class Ball(pygame.sprite.Sprite):
     # -------------------
     def update(self):
         
+        if (self.staticPosition != None):
+            return
+
         # New time measure.
         now = time.time()
         dt = (now - self.timestamp) * TIME_COEFFICIENT
 
         # New acceleration computation : Acceleration is always the same.
-        self.acceleration = Vector2D(0, GRAVITY)
+        # Using Newton's law of universal gravitation : F = G . ml.m2 / r²
+        self.acceleration = Vector2D(0, 0) 
+        for ball in self.balls:
+            if (ball != self):
+                # We ignore ourself among the ball set.
+                dx = ball.position.x - self.position.x
+                dy = ball.position.y - self.position.y
+                # Using the Pythagorean theorem, we can compute the distance between me and the other ball.
+                r = math.sqrt(dx * dx + dy * dy)
+                a = G * ball.mass / (r * r)
+                # Using the Thales theorem, we can deduce acceleration components x and y.
+                self.acceleration.x += dx * a / r
+                self.acceleration.y += dy * a / r
 
         # New speed computation.
         self.speed.x += self.acceleration.x * dt
@@ -79,16 +113,16 @@ class Ball(pygame.sprite.Sprite):
         self.position.x += self.speed.x * dt
         self.position.y += self.speed.y * dt
 
-        # Eventually do a rebounce if individual cross the Window limits.
-        if self.position.x < self.minLimits.x or self.position.x > self.maxLimits.x:
-            self.speed.x = -self.speed.x * RESTITUTION_COEFFICIENT
-            # Readjust the position inside the limit.
-            self.position.x = min(max(self.position.x, self.minLimits.x), self.maxLimits.x)
+        # # Eventually do a rebounce if individual cross the Window limits.
+        # if self.position.x < self.minLimits.x or self.position.x > self.maxLimits.x:
+        #     self.speed.x = -self.speed.x * RESTITUTION_COEFFICIENT
+        #     # Readjust the position inside the limit.
+        #     self.position.x = min(max(self.position.x, self.minLimits.x), self.maxLimits.x)
 
-        if self.position.y < self.minLimits.y or self.position.y > self.maxLimits.y:
-            self.speed.y = -self.speed.y * RESTITUTION_COEFFICIENT
-            # Readjust the position inside the limit.
-            self.position.y = min(max(self.position.y, self.minLimits.y), self.maxLimits.y)
+        # if self.position.y < self.minLimits.y or self.position.y > self.maxLimits.y:
+        #     self.speed.y = -self.speed.y * RESTITUTION_COEFFICIENT
+        #     # Readjust the position inside the limit.
+        #     self.position.y = min(max(self.position.y, self.minLimits.y), self.maxLimits.y)
 
         # Finally update the position X and Y.
         self.rect.center = (self.position.x * SCALE, self.position.y * SCALE)
@@ -97,9 +131,9 @@ class Ball(pygame.sprite.Sprite):
         self.timestamp = now
 
 # --------------------------------------------------------------
-class TestGravity1D(unittest.TestCase):
+class TestMultipleGravity2D(unittest.TestCase):
 
-    def test_gravity1D(self):
+    def test_multipleGravity2D(self):
 
         # Initialize Pygame.
         pygame.init()
@@ -108,11 +142,16 @@ class TestGravity1D(unittest.TestCase):
         self._screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
         pygame.display.set_caption(self.__str__())
 
-        # Create the ball object.
-        ball = Ball()
+        # Create all the ball objects.
+        balls = pygame.sprite.Group()
+        massiveBall = Ball(1000 * MASS, balls, Point2D(SCREEN_WIDTH / 2 / SCALE, SCREEN_HEIGHT / 2 / SCALE)) # Create at the center a static massive ball.
+        balls.add(massiveBall)
+        for i in range(0, NB_BALLS-1):           
+            ball = Ball(MASS, balls, None)
+            balls.add(ball)
 
         # Initialize the timer at 60s that trigger the exit loop.
-        pygame.time.set_timer(pygame.USEREVENT, 60000)
+        #pygame.time.set_timer(pygame.USEREVENT, 120000)
 
         # Loop until the user clicks the close button.
         done = False
@@ -133,10 +172,10 @@ class TestGravity1D(unittest.TestCase):
                 self._screen.fill(pygame.Color("black"))
 
                 # Calls update() method on every sprite in the list
-                ball.update()
+                balls.update()
 
                 # Draw all the sprites
-                ball.draw(self._screen)
+                balls.draw(self._screen)
 
                 # Limit to 60 frames per second
                 clock.tick(60)
