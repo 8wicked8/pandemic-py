@@ -4,11 +4,14 @@ import random
 import math
 import time
 
+# Number of animated balls.
+NB_BALLS = 100
+
 # Screen dimensions.
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 
-RADIUS = 10
+RADIUS = 5
 GRAVITY = 9.81 # m/s²
 RESTITUTION_COEFFICIENT = 0.9 # The coefficient of restitution is the ratio of the final to initial relative velocity between two objects after they collide.
 TIME_COEFFICIENT = 1 # = 1 : Normal, > 1 : Faster, < 1 : Slower.
@@ -39,7 +42,7 @@ class Ball(pygame.sprite.Sprite):
         self.minLimits = Point2D(self.radius, self.radius) # In meter.
         self.maxLimits = Point2D(SCREEN_WIDTH / SCALE - self.radius, SCREEN_HEIGHT / SCALE - self.radius) # In meter.
         self.position = Point2D(random.uniform(self.minLimits.x, self.maxLimits.x), 0) # In meter.
-        self.speed = Vector2D(10, 0) # In meter/s.
+        self.speed = Vector2D(random.uniform(-10, 10), random.uniform(-10, 10)) # In meter/s.
         self.acceleration = Vector2D(0, -GRAVITY) # In meter/s².
         
         self.image = pygame.Surface([2*RADIUS, 2*RADIUS])
@@ -97,9 +100,9 @@ class Ball(pygame.sprite.Sprite):
         self.timestamp = now
 
 # --------------------------------------------------------------
-class TestGravity1D(unittest.TestCase):
+class TestMultipleGravity1D(unittest.TestCase):
 
-    def test_gravity1D(self):
+    def test_multipleGravity1D(self):
 
         # Initialize Pygame.
         pygame.init()
@@ -107,8 +110,11 @@ class TestGravity1D(unittest.TestCase):
         # Create the window.
         self._screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 
-        # Create the ball object.
-        ball = Ball()
+        # Create all the ball objects.
+        balls = pygame.sprite.Group()
+        for i in range(0, NB_BALLS):           
+            ball = Ball()
+            balls.add(ball)
 
         # Initialize the timer at 60s that trigger the exit loop.
         pygame.time.set_timer(pygame.USEREVENT, 60000)
@@ -132,10 +138,10 @@ class TestGravity1D(unittest.TestCase):
                 self._screen.fill(pygame.Color("black"))
 
                 # Calls update() method on every sprite in the list
-                ball.update()
+                balls.update()
 
                 # Draw all the sprites
-                ball.draw(self._screen)
+                balls.draw(self._screen)
 
                 # Limit to 60 frames per second
                 clock.tick(60)

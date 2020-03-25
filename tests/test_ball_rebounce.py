@@ -15,6 +15,9 @@ class Ball(pygame.sprite.Sprite):
 
     def __init__(self):
 
+        # Call the parent class (Sprite) constructor
+        super().__init__()
+
         self.image = pygame.Surface([2*RADIUS, 2*RADIUS])
         self.image.fill(pygame.Color("black")) # Background color.
         self.image.set_colorkey(pygame.Color("black")) # Transparent color.
